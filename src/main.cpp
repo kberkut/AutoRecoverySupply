@@ -106,4 +106,8 @@ void statusError()
 
 void loop()
 {
+  button();
+  control();
+  stopMotor();
+  statusError();
 }
