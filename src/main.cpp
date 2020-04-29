@@ -8,7 +8,6 @@
 // Сброс запрета работы АВП. Реализован удержанием кнопки включения в течение 7с
 // Индикация аварии и запрет на работу АВП.
 
-
 // == Первый канал
 #define START1 1    // Кнопка запуска схемы и включения автоматического режима. Ручное управление отключается!!!
 #define KM1 4       // Реле для запуска схемы
@@ -20,8 +19,8 @@
 #include <GyverButton.h>
 GButton start1(START1, HIGH_PULL, NORM_OPEN);
 
-bool flagOn, flagOnKM1 = false, flagError, flagWriteKM1 = false, flagWriteLED_AUTO1 = false;
-unsigned int needPause;
+bool flagOn, flagOnKM1 = false, flagError, flagWriteKM1 = false, flagWriteLED_AUTO1 = false, flagWorkKM1 = false;
+unsigned int needPause, timer, timeWorkKM1;
 
 void setup()
 {
@@ -54,6 +53,12 @@ void control()
     {
       flagWriteKM1 = true;
       digitalWrite(KM1, HIGH);
+      timer = millis();
+    }
+    if (flagWriteKM1 == true && flagWorkKM1 == false && (millis() - timer > timeWorkKM1)){
+      digitalWrite(KM1, LOW);
+      flagWorkKM1 = true;
+
     }
     if (flagWriteLED_AUTO1 == false && flagError == false)
     {
@@ -67,6 +72,8 @@ void control()
     if (flagWriteLED_AUTO1 == true)
     {
       flagWriteLED_AUTO1 = false;
+      flagWorkKM1 = false;
+      flagWriteKM1 = false;
       digitalWrite(LED_AUTO1, LOW);
       digitalWrite(KM1, LOW);
     }
@@ -89,15 +96,15 @@ void statusError()
   }
   if (flagError == true)
   {
-    if ((millis() - needPause > 500) && flagWriteLED_AUTO1 == false)
+    if (flagWriteLED_AUTO1 == false && (millis() - needPause > 500))
     {
-      flagWriteLED_AUTO1 == true;
+      flagWriteLED_AUTO1 = true;
       digitalWrite(LED_AUTO1, HIGH);
       needPause = millis();
     }
-    if ((millis() - needPause > 500) && flagWriteLED_AUTO1 == true)
+    if (flagWriteLED_AUTO1 == true && (millis() - needPause > 500))
     {
-      flagWriteLED_AUTO1 == true;
+      flagWriteLED_AUTO1 = true;
       digitalWrite(LED_AUTO1, LOW);
       needPause = millis();
     }
